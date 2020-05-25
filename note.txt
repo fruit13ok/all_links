@@ -54,3 +54,33 @@ git push -u origin master
 // if still not work, delete .git folder too, try again.
 // Remember to npm i before next run, might need to click refresh in folder explorer.
 
+
+//////////////////// implement scrape for all links //////////////////////
+
+1).
+format input url into standard url, 
+<<< this might not suit all url, take care later >>>
+EX:
+https://www.google.com
+
+2).
+scrape for all links, select 'a' tag's 'href', map nodelist to array, 
+<<< assume no login nor personalization on the given page >>>
+EX:
+await page.$$eval('a', as => as.map(a => a.href));
+
+3).
+[[[ This takes time, due to number of page fetch request ]]]
+[[[ CAREFUL !!! many asynchronous, normal loop don't work ]]]
+check url status by send fetch request to each urls, 
+fetch function is asynchronous
+EX:
+checkUrl(url)
+loop over each fetch function also need to be asynchronous, 
+format the return result here
+EX:
+forLoop(resultArr)
+they start after scraped those urls
+EX:
+scrape(targetPage)
+
