@@ -35,6 +35,7 @@ app.listen(port, () => {
 
 // helper functions
 
+// check URL status code
 let checkUrl = async (url) => {
     try {
         const response = await fetch(url);
@@ -46,6 +47,7 @@ let checkUrl = async (url) => {
     }
 };
 
+// return result array of objects
 let forLoop = async (resultArr) => {
     let resultArray = [];
     for (let i = 0; i < resultArr.length; i++) {
@@ -95,7 +97,6 @@ app.get('/', function (req, res) {
 });
 
 // post, get form data from frontend
-// return array of object with searchKey and count to frontend
 app.post('/api', async function (req, res) {
     req.setTimeout(0);
     let targetPage = req.body.targetPage || "";

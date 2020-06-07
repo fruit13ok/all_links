@@ -3,7 +3,7 @@ mkdir all_links
 cd all_links
 code .
 npm init -y
-npm install express puppeteer body-parser node-fetch cors --save
+npm install express puppeteer body-parser node-fetch cors jspdf jspdf-autotable --save
 npm install nodemon --save-dev
 
 // in package.json
@@ -84,3 +84,10 @@ they start after scraped those urls
 EX:
 scrape(targetPage)
 
+
+//////////////////// implement JSON to PDF //////////////////////
+I added JSON to PDF feature base on this example:
+https://github.com/fruit13ok/try_jspdf
+
+//////////////////// implement JSON to CSV //////////////////////
+I added JSON to CSV feature
