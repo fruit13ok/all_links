@@ -5,10 +5,17 @@ const path = require('path');
 
 // 3rd party
 const express = require('express');
+const mongoose = require('mongoose');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const fetch = require("node-fetch");
+
+// access to .env file variables use process.env.VARIABLE_NAME
+require('dotenv/config');
+
+// access model
+const Scrapelink = require('../models/Scrapelink');
 
 // local
 const app = express();
@@ -27,6 +34,13 @@ app.use( (req, res, next) => {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
+
+// test connect to DB
+// mongoose.connect('mongodb://fruit13ok:ly13OK@ds015889.mlab.com:15889/scrapedb',
+mongoose.connect(process.env.DB_CONNECTION,
+    { useNewUrlParser: true, useUnifiedTopology: true }, 
+    () => {console.log('connected to DB');}
+);
 
 // INIT SERVER
 app.listen(port, () => {
@@ -86,7 +100,7 @@ let scrape = async (targetPage) => {
     // const hrefs = await Promise.all((await page.$$('a')).map(async a => {
     //     return await (await a.getProperty('href')).jsonValue();
     // }));
-    console.log('hrefs: ',hrefs.length, hrefs);
+    // console.log('hrefs: ',hrefs.length, hrefs);
     return hrefs;
 };
 
@@ -104,7 +118,31 @@ app.post('/api', async function (req, res) {
     .then((resultArr)=>{
         forLoop(resultArr)
         .then(resultArray => {
-            res.send(resultArray);
+            // console.log('targetPage: ', targetPage);
+            // console.log('resultArray: ', resultArray);
+            const scrapelink = new Scrapelink({
+                givenlink: targetPage,
+                resultlinks: resultArray
+            });
+            scrapelink.save()
+            .then(data => {
+                res.send(data.resultlinks);
+            })
+            .catch(err => {
+                res.send("DB ERROR: ", err);
+            });
         })
     }).catch(() => {});    
+});
+
+// GET route get all documents from Scrapelink collection,
+// use find() to get all,
+// response back JSON
+app.get('/api', async function (req, res) {
+    try {
+        const allSavedData = await Scrapelink.find();
+        res.send(allSavedData);
+    } catch (err) {
+        res.send("DB ERROR: ", err);
+    }
 });

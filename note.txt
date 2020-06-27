@@ -4,6 +4,7 @@ cd all_links
 code .
 npm init -y
 npm install express puppeteer body-parser node-fetch cors jspdf jspdf-autotable --save
+npm install mongoose dotenv --save
 npm install nodemon --save-dev
 
 // in package.json
@@ -91,3 +92,137 @@ https://github.com/fruit13ok/try_jspdf
 
 //////////////////// implement JSON to CSV //////////////////////
 I added JSON to CSV feature
+
+//////////////////////////////////////////////////////////////////
+/////////////// add MongoDB, MLAB, POST, GET all /////////////////
+//////////////////////////////////////////////////////////////////
+
+// insatll mongoose
+npm install mongoose --save
+
+// need mlab account
+https://mlab.com/
+fruit13ok
+ly13OK
+
+    // after login, create new DB, create a user can access this DB
+    https://mlab.com/home?newLogin=1
+    "Create new" -> "SANDBOX" continue -> "US East" continue 
+    -> name it "scrapedb" continue -> "Submit order"
+    -> click on "scrapedb" -> "Users" Add database user
+    -> fruit13ok / ly13OK
+
+// to connect
+// MongoDB URI
+mongodb://<dbuser>:<dbpassword>@ds015889.mlab.com:15889/scrapedb
+//mongo shell
+% mongo ds015889.mlab.com:15889/scrapedb -u <dbuser> -p <dbpassword>
+
+// use mongoose in code
+// in index.js
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://fruit13ok:ly13OK@ds015889.mlab.com:15889/scrapedb',
+    { useNewUrlParser: true, useUnifiedTopology: true }, 
+    () => {console.log('connected to DB');}
+);
+
+// install dorenv
+npm install dotenv --save
+
+// create .env file
+mkdir .env
+    // edit .gitignore
+    .env
+
+// use dotenv in code to store key
+// in .env
+DB_CONNECTION=mongodb://fruit13ok:ly13OK@ds015889.mlab.com:15889/scrapedb
+// in index.js
+require('dotenv/config');
+// to access env variables, use process.env.THE_VARIABLE_NAME
+EX:
+mongoose.connect(process.env.DB_CONNECTION,
+    { useNewUrlParser: true, useUnifiedTopology: true }, 
+    () => {console.log('connected to DB');}
+);
+
+// use mongoose to create models, 
+// data will be a bit more than the result,
+// it contain the given link, and scrape result with array of url and status,
+// in DB it will have _id too
+create models/Scrapelink.js
+create Schema us subdocument way to create nested array of object,
+there are 2 Schema work together,
+so in DB there are 2 set of _id
+
+// export only the outter model from Scrapelink.js, so index.js can erequire it
+const Scrapelink = mongoose.model('Scrapelink', ScrapelinkSchema);
+module.exports = Scrapelink;
+
+// in index.js POST route, after finished scraping done, 
+// use the Scrapelink model to pass in target page and result array,
+// there will be smartly create collection if not exist, add document if exist,
+const scrapelink = new Scrapelink({
+    givenlink: targetPage,
+    resultlinks: resultArray
+});
+scrapelink.save()
+.then(data => {
+    res.send(data.resultlinks);
+})
+.catch(err => {
+    res.send("DB ERROR: ", err);
+});
+
+// in index.js create a GET route for http://localhost:8000/api
+// get all documents from Scrapelink collection, response back JSON
+app.get('/api', async function (req, res) {
+const allSavedData = await Scrapelink.find();
+res.send(allSavedData);
+
+// the DB will add _id to each document, that mean each result saved to DB,
+// also add _id to each url/status set,
+
+// in html add "Show Saved Results" button to triger fetch all data from DB
+
+// treat the whole data came back from DB as a JSON with extra _id column in first level of object, 
+// and with in each result set in second level,
+
+// !!! NOTE !!! before added DB, result after scrape no _id column, send to frontend,
+// !!! NOTE !!! after added DB, after scrape, send to DB, now has _id column, send to frontend,
+
+// [[ OPTIONAL ]] to display to screen and CVS download I removed both _id column,
+// So it look similar like before adding DB, no need to change CSV
+    // right after sent result to DB, I use data response back from DB, send to frontend
+    // it is a "document" 
+    // EX: 
+    [{_id,url,status},{_id,url,status},...]
+        // only 1 level deep, I remove _id by map()
+        let json = await response.json();
+        json = json.map(key => { 
+            delete key._id; 
+            return key; 
+        });
+    // when fetch all data from DB,
+    // it is a "collection" that contain multiple "document"
+    // EX:
+    [
+        {_id,givenlink,resultlinks:[{_id,url,status},{_id,url,status},...]},
+        {_id,givenlink,resultlinks:[{_id,url,status},{_id,url,status},...]}
+    ]
+        // 2 levels deep, I remove _id by forEach() loop through collection, map() each document
+        const json = await response.json();
+        json.forEach(e => {
+            e.resultlinks.map(k => {
+                delete k._id;
+                return k;
+            });
+        });
+
+// display on screen mostly the same
+
+
+
+
+
+

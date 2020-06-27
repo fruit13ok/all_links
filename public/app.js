@@ -18,6 +18,11 @@ const getScrape = async (backendRoute, formObj) => {
 
         console.log('response',response);
         let json = await response.json();
+        // DB version I have to skip "_id" column
+        json = json.map(key => { 
+            delete key._id; 
+            return key; 
+        });
         console.log('json',json);
         let mList = document.getElementById('result-list');
         mList.innerHTML = '';
@@ -44,13 +49,36 @@ const getScrape = async (backendRoute, formObj) => {
     return jr;
 };
 
+// fetch to backend for all saved data from DB
+const getAllSavedData = async (backendRoute) => {
+    try {
+        const response = await fetch(backendRoute);
+        const json = await response.json();
+        // DB version I have to skip "_id" column, DB has multiple documents, need to loop
+        json.forEach(e => {
+            e.resultlinks.map(k => {
+                delete k._id;
+                return k;
+            });
+        });
+        console.log('json',json);
+        let mList = document.getElementById('result-list');
+        mList.innerHTML = '';
+        let pre = document.createElement('pre');
+        pre.innerHTML = JSON.stringify(json, null, 4);
+        mList.appendChild(pre);
+    }catch (error) {
+        console.log(error);
+    }
+};
+
 // converter JSON to CSV return string
 const ConvertToCSV = (objArray) => {
     console.log('objArray: ', objArray);
     let array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
     console.log('array: ', array);
     console.log('keys: ', Object.keys(array[0]).join());
-    let str = Object.keys(array[0]).join()+'\r\n';
+    let str = Object.keys(array[0]).slice(1).join()+'\r\n';
     for (let i = 0; i < array.length; i++) {
         console.log(i,': ', array[i]);
         let line = '';
@@ -190,8 +218,24 @@ $(document).ready(function(){
 
     // onclick convert JSON to CSV and download it
     $("#result-list").on("click", "#btncsv", function(){
+        console.log('jsonResult: ',jsonResult);
         var jsonObject = JSON.stringify(jsonResult);
         var text = ConvertToCSV(jsonObject);
         download('test.csv', text);
     });
+});
+
+// Show Saved Results button clicked, launch GET request to backend to get all saved data
+$(document).ready(function(){
+    $("#button2").click(function(){
+        document.getElementById('result-list').innerHTML = 
+        '<p style="color:blue;font-size:46px;"><strong> ... Getting all saved data from database please wait ... </strong></p>';
+
+        // async function have to be call inside async function, so use a iife empty function here
+        (async () => {
+            jsonResult = await getAllSavedData(backendRoute)
+        })();
+    });
+
+    
 });
