@@ -72,26 +72,96 @@ const getAllSavedData = async (backendRoute) => {
     }
 };
 
-// converter JSON to CSV return string
-const ConvertToCSV = (objArray) => {
-    console.log('objArray: ', objArray);
-    let array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-    console.log('array: ', array);
-    console.log('keys: ', Object.keys(array[0]).join());
-    let str = Object.keys(array[0]).slice(1).join()+'\r\n';
-    for (let i = 0; i < array.length; i++) {
-        console.log(i,': ', array[i]);
-        let line = '';
-        for (let index in array[i]) {
-            if (line != '') {
-            line += ',';
-            }
-            line += array[i][index];
-            console.log(index,': ', line);
-        }
-            str += line + '\r\n';
-    }
-    return str;
+// make PDF with jspdf and jspdf-autotable
+// Default export is a4 paper, portrait, using millimeters for units
+
+// // basic text version
+// // resource:
+// // https://github.com/MrRio/jsPDF
+// var doc = new jsPDF()
+// urls.forEach((url, index) => {
+//     doc.text(
+//         20, 20 + (index * 10),
+//         "url: " + url.url + "\t|\t" + "status: " + url.status
+//     );
+// });
+// doc.save('test.pdf')
+
+//////////////////////////////////////////////////////////////////////
+
+// // basic table version
+// // resource:
+// // http://raw.githack.com/MrRio/jsPDF/master/
+// //      choose example cell
+// // http://raw.githack.com/MrRio/jsPDF/master/docs/module-cell.html#~table
+// // https://github.com/MrRio/jsPDF/issues/2223
+
+// // test data like JSON
+// // var jsonResult = [
+// //     {url: "www.google.com", status: 200}, 
+// //     {url: "www.yahoo.com", status: 200}, 
+// //     {url: "www.bing.com", status: 200}
+// // ];
+// // add "id" property to jsonResult, it is like table primary key
+// // for (var i = 0; i < jsonResult.length; i++) {
+// //     jsonResult[i].id = (i+1);
+// // }
+// // table header data, need the next function createHeaders()
+// // var header = createHeaders(["id", "url", "status"]);
+// var header = createHeaders(["url", "status"]);
+
+// // this function is require createHeaders(),
+// // documentation unclear, so just copy / paste and use it,
+// // if don't want id then remove "id: keys[i]" here, 
+// // and don't add "id" property to jsonResult 
+// function createHeaders(keys) {
+//     var result = [];
+//     for (var i = 0; i < keys.length; i += 1) {
+//         result.push({
+//             // id: keys[i],
+//             name: keys[i],
+//             prompt: keys[i],
+//             width: 65,
+//             align: "center",
+//             padding: 0
+//         });
+//     }
+//     return result;
+// }
+
+// // invoke jsPDF, create table(), save() as PDF for download
+// var doc = new jsPDF({ orientation: "landscape" })
+// console.log("header: ",header);
+// console.log("data: ",jsonResult);
+// doc.table(1, 1, jsonResult, header)
+// doc.save('test.pdf')
+
+//////////////////////////////////////////////////////////////////////////
+
+// better version use "jsPDF Autotable"
+// to install I use CDN links
+// source:
+// https://github.com/simonbengtsson/jsPDF-AutoTable
+// some config:
+// https://stackoverflow.com/questions/38787437/different-width-for-each-columns-in-jspdf-autotable
+
+// I break JSON into "header" and "value" for table
+// use "columnStyles" and "cellWidth" to set first column size
+const convertAndDownloadPDF = (jsonResult) => {
+    console.log('jsonResult: ',jsonResult);
+    let header = Object.keys(jsonResult[0]);
+    let data = jsonResult.map(e=>Object.values(e));
+    // body need spread operartor because is nested
+    console.log("header: ",header);
+    console.log("data: ",...data);
+    // var doc = new jsPDF({ orientation: "landscape" })
+    var doc = new jsPDF()
+    doc.autoTable({
+        head: [header],
+        body: [...data],
+        columnStyles: {0: {cellWidth: 150}}
+    })
+    doc.save('test.pdf')
 };
 
 // html attribute download file
@@ -104,6 +174,32 @@ const download = (filename, text) => {
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+};
+
+// converter JSON to CSV return string
+const convertAndDownloadCSV = (jsonResult) => {
+    // incase of result is not an array of object, convert to json string than, to json object
+    console.log('jsonResult: ',jsonResult);
+    var objArray = JSON.stringify(jsonResult);
+    console.log('objArray: ', objArray);
+    // usually "array" is same as given "jsonResult"
+    let array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+    console.log('array: ', array);
+    let str = Object.keys(array[0]).join()+'\r\n';
+    console.log('keys: ', str);
+    for (let i = 0; i < array.length; i++) {
+        console.log(i,': ', array[i]);
+        let line = '';
+        for (let index in array[i]) {
+            if (line != '') {
+            line += ',';
+            }
+            line += array[i][index];
+            console.log(index,': ', line);
+        }
+            str += line + '\r\n';
+    }
+    download('test.csv', str);
 };
 
 // submit button clicked, pass form data into scrape function and invoke it
@@ -126,102 +222,13 @@ $(document).ready(function(){
     });
 
     // need start with static element for event binding on dynamically created elements
-    // Default export is a4 paper, portrait, using millimeters for units
     $("#result-list").on("click", "#btnpdf", function(){
-        console.log('jsonResult: ',jsonResult);
-        // // basic text version
-        // // resource:
-        // // https://github.com/MrRio/jsPDF
-        // var doc = new jsPDF()
-        // urls.forEach((url, index) => {
-        //     doc.text(
-        //         20, 20 + (index * 10),
-        //         "url: " + url.url + "\t|\t" + "status: " + url.status
-        //     );
-        // });
-        // doc.save('test.pdf')
-
-        //////////////////////////////////////////////////////////////////////
-
-        // // basic table version
-        // // resource:
-        // // http://raw.githack.com/MrRio/jsPDF/master/
-        // //      choose example cell
-        // // http://raw.githack.com/MrRio/jsPDF/master/docs/module-cell.html#~table
-        // // https://github.com/MrRio/jsPDF/issues/2223
-        
-        // // test data like JSON
-        // // var jsonResult = [
-        // //     {url: "www.google.com", status: 200}, 
-        // //     {url: "www.yahoo.com", status: 200}, 
-        // //     {url: "www.bing.com", status: 200}
-        // // ];
-        // // add "id" property to jsonResult, it is like table primary key
-        // // for (var i = 0; i < jsonResult.length; i++) {
-        // //     jsonResult[i].id = (i+1);
-        // // }
-        // // table header data, need the next function createHeaders()
-        // // var header = createHeaders(["id", "url", "status"]);
-        // var header = createHeaders(["url", "status"]);
-
-        // // this function is require createHeaders(),
-        // // documentation unclear, so just copy / paste and use it,
-        // // if don't want id then remove "id: keys[i]" here, 
-        // // and don't add "id" property to jsonResult 
-        // function createHeaders(keys) {
-        //     var result = [];
-        //     for (var i = 0; i < keys.length; i += 1) {
-        //         result.push({
-        //             // id: keys[i],
-        //             name: keys[i],
-        //             prompt: keys[i],
-        //             width: 65,
-        //             align: "center",
-        //             padding: 0
-        //         });
-        //     }
-        //     return result;
-        // }
-
-        // // invoke jsPDF, create table(), save() as PDF for download
-        // var doc = new jsPDF({ orientation: "landscape" })
-        // console.log("header: ",header);
-        // console.log("data: ",jsonResult);
-        // doc.table(1, 1, jsonResult, header)
-        // doc.save('test.pdf')
-
-        //////////////////////////////////////////////////////////////////////////
-
-        // better version use "jsPDF Autotable"
-        // to install I use CDN links
-        // source:
-        // https://github.com/simonbengtsson/jsPDF-AutoTable
-        // some config:
-        // https://stackoverflow.com/questions/38787437/different-width-for-each-columns-in-jspdf-autotable
-
-        // I break JSON into "header" and "value" for table
-        // use "columnStyles" and "cellWidth" to set first column size
-        let header = Object.keys(jsonResult[0]);
-        let data = jsonResult.map(e=>Object.values(e));
-        // body need spread operartor because is nested
-        console.log("header: ",header);
-        console.log("data: ",...data);
-        // var doc = new jsPDF({ orientation: "landscape" })
-        var doc = new jsPDF()
-        doc.autoTable({
-            head: [header],
-            body: [...data],
-            columnStyles: {0: {cellWidth: 150}}
-        })
-        doc.save('test.pdf')
+        convertAndDownloadPDF(jsonResult);
     });
 
     // onclick convert JSON to CSV and download it
     $("#result-list").on("click", "#btncsv", function(){
-        console.log('jsonResult: ',jsonResult);
-        var jsonObject = JSON.stringify(jsonResult);
-        var text = ConvertToCSV(jsonObject);
-        download('test.csv', text);
+        convertAndDownloadCSV(jsonResult);
     });
 });
 
