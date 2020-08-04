@@ -4,6 +4,34 @@ let backendRoute = new URL("http://localhost:8000/api");
 
 let jsonResult = [];
 
+// add downloadable buttons PDF CSV before scrape result
+const generateDownloadButtons = (htmlElement) => {
+    let buttonPDF = document.createElement('button');
+    buttonPDF.id = "btnpdf";
+    buttonPDF.innerHTML = "PDF";
+    buttonPDF.className = "btn btn-info mt-2 mb-2";
+    let span1 = document.createElement('span');
+    span1.innerHTML = ' ';
+    let span2 = document.createElement('span');
+    span2.innerHTML = ' ';
+    let buttonCSV = document.createElement('button');
+    buttonCSV.id = "btncsv";
+    buttonCSV.innerHTML = "CSV";
+    buttonCSV.className = "btn btn-info mt-2 mb-2";
+    let buttonGSheet = document.createElement('button');
+    buttonGSheet.id = "btngs";
+    // buttonGSheet.onclick = () => {
+    //     window.open("https://docs.google.com/spreadsheets/d/1z0N6x8W1lOXNdlkIHAhV4wJ6zoI524pYQzxIPsQ6Cwg/edit?usp=sharing");
+    // };
+    buttonGSheet.innerHTML = "Google Sheet";
+    buttonGSheet.className = "btn btn-info mt-2 mb-2";
+    htmlElement.appendChild(buttonPDF);
+    htmlElement.appendChild(span1);
+    htmlElement.appendChild(buttonCSV);
+    htmlElement.appendChild(span2);
+    htmlElement.appendChild(buttonGSheet);
+};
+
 const getScrape = async (backendRoute, formObj) => {
     let jr = [];
     try {
@@ -26,21 +54,9 @@ const getScrape = async (backendRoute, formObj) => {
         console.log('json',json);
         let mList = document.getElementById('result-list');
         mList.innerHTML = '';
-        let buttonPDF = document.createElement('button');
-        buttonPDF.id = "btnpdf";
-        buttonPDF.innerHTML = "Download PDF";
-        buttonPDF.className = "btn btn-info mt-2 mb-2";
-        let buttonCSV = document.createElement('button');
-        buttonCSV.id = "btncsv";
-        buttonCSV.innerHTML = "Download CSV";
-        buttonCSV.className = "btn btn-info mt-2 mb-2";
+        generateDownloadButtons(mList);
         let pre = document.createElement('pre');
         pre.innerHTML = JSON.stringify(json, null, 4);
-        let span = document.createElement('span');
-        span.innerHTML = ' ';
-        mList.appendChild(buttonPDF);
-        mList.appendChild(span);
-        mList.appendChild(buttonCSV);
         mList.appendChild(pre);
         jr = json;
     }catch (error) {
@@ -202,6 +218,10 @@ const convertAndDownloadCSV = (jsonResult) => {
     download('test.csv', str);
 };
 
+const convertAndOpenGoogleSheet = (jsonResult) => {
+    window.open("https://docs.google.com/spreadsheets/d/1z0N6x8W1lOXNdlkIHAhV4wJ6zoI524pYQzxIPsQ6Cwg/edit?usp=sharing");
+};
+
 // submit button clicked, pass form data into scrape function and invoke it
 $(document).ready(function(){
     $("#button1").click(function(){
@@ -229,6 +249,11 @@ $(document).ready(function(){
     // onclick convert JSON to CSV and download it
     $("#result-list").on("click", "#btncsv", function(){
         convertAndDownloadCSV(jsonResult);
+    });
+
+    // onclick convert JSON to a publicly viewable google sheet
+    $("#result-list").on("click", "#btngs", function(){
+        convertAndOpenGoogleSheet(jsonResult);
     });
 });
 

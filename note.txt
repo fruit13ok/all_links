@@ -3,7 +3,7 @@ mkdir all_links
 cd all_links
 code .
 npm init -y
-npm install express puppeteer body-parser node-fetch cors jspdf jspdf-autotable --save
+npm install express puppeteer body-parser node-fetch cors jspdf jspdf-autotable googleapis@39 abort-controller --save
 npm install mongoose dotenv --save
 npm install nodemon --save-dev
 
@@ -221,7 +221,17 @@ res.send(allSavedData);
 
 // display on screen mostly the same
 
+////////////////////////////////////////////////////////////////////
+// side tack a little bit, refactor PDF and CSV code to functions //
+////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////
+///////////////////////// google sheet api /////////////////////////
+//                      see sheets-api-project                    //
+////////////////////////////////////////////////////////////////////
+
+// the credential and token were made from testing project sheets-api-project
+// I just copied them to server folder, change the path in code to match
 
 
 
