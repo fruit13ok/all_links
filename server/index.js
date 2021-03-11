@@ -248,8 +248,8 @@ const urlLoop = async (urls) => {
 };
 
 let scrape = async (targetPage) => {
-    // const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false']});
-    const browser = await puppeteer.launch({headless: false, ignoreHTTPSErrors: true, slowMo: 100});
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false']});
+    // const browser = await puppeteer.launch({headless: false, ignoreHTTPSErrors: true, slowMo: 100});
     const page = await browser.newPage();
     if(targetPage.startsWith('https://www.')){
         console.log('https://www.');
