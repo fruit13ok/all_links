@@ -5,7 +5,7 @@ const path = require('path');
 
 // 3rd party
 const express = require('express');
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -39,10 +39,10 @@ app.use( (req, res, next) => {
 
 // test connect to DB
 // mongoose.connect('mongodb://fruit13ok:ly13OK@ds015889.mlab.com:15889/scrapedb',
-mongoose.connect(process.env.DB_CONNECTION,
-    { useNewUrlParser: true, useUnifiedTopology: true }, 
-    () => {console.log('connected to DB');}
-);
+// mongoose.connect(process.env.DB_CONNECTION,
+//     { useNewUrlParser: true, useUnifiedTopology: true }, 
+//     () => {console.log('connected to DB');}
+// );
 
 // INIT SERVER
 app.listen(port, () => {
@@ -78,119 +78,119 @@ function updateid(newID){
 /////////////////////////// below are for google sheet api /////////////////////////////
 ////////// since google upgrade api frequently, I keep it as a block of code ///////////
 ////////////////////////////////////////////////////////////////////////////////////////
-const fs = require('fs');
-const readline = require('readline');
-const {google} = require('googleapis');
+// const fs = require('fs');
+// const readline = require('readline');
+// const {google} = require('googleapis');
 
-// If modifying these scopes, delete token.json.
-// const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
-const TOKEN_PATH = 'server/token.json';
+// // If modifying these scopes, delete token.json.
+// // const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+// const SCOPES = ['https://www.googleapis.com/auth/drive'];
+// // The file token.json stores the user's access and refresh tokens, and is
+// // created automatically when the authorization flow completes for the first
+// // time.
+// const TOKEN_PATH = 'server/token.json';
 
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
- */
-function authorize(resultArr, credentials, callback) {
-    let uNewGSID;
-    const {client_secret, client_id, redirect_uris} = credentials.web;
-    const oAuth2Client = new google.auth.OAuth2(
-        client_id, client_secret, redirect_uris[0]);
+// /**
+//  * Create an OAuth2 client with the given credentials, and then execute the
+//  * given callback function.
+//  * @param {Object} credentials The authorization client credentials.
+//  * @param {function} callback The callback to call with the authorized client.
+//  */
+// function authorize(resultArr, credentials, callback) {
+//     let uNewGSID;
+//     const {client_secret, client_id, redirect_uris} = credentials.web;
+//     const oAuth2Client = new google.auth.OAuth2(
+//         client_id, client_secret, redirect_uris[0]);
   
-    // Check if we have previously stored a token.
-    fs.readFile(TOKEN_PATH, (err, token) => {
-      if (err) return getNewToken(oAuth2Client, callback);
-      oAuth2Client.setCredentials(JSON.parse(token));
-      uNewGSID = callback(resultArr, oAuth2Client);
-      console.log('ID in authorize:', uNewGSID);
-    });
-    return uNewGSID;
-}
+//     // Check if we have previously stored a token.
+//     fs.readFile(TOKEN_PATH, (err, token) => {
+//       if (err) return getNewToken(oAuth2Client, callback);
+//       oAuth2Client.setCredentials(JSON.parse(token));
+//       uNewGSID = callback(resultArr, oAuth2Client);
+//       console.log('ID in authorize:', uNewGSID);
+//     });
+//     return uNewGSID;
+// }
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback for the authorized client.
- */
-function getNewToken(oAuth2Client, callback) {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-  });
-  console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  rl.question('Enter the code from that page here: ', (code) => {
-    rl.close();
-    oAuth2Client.getToken(code, (err, token) => {
-      if (err) return console.error('Error while trying to retrieve access token', err);
-      oAuth2Client.setCredentials(token);
-      // Store the token to disk for later program executions
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err);
-        console.log('Token stored to', TOKEN_PATH);
-      });
-      callback(oAuth2Client);
-    });
-  });
-}
+// /**
+//  * Get and store new token after prompting for user authorization, and then
+//  * execute the given callback with the authorized OAuth2 client.
+//  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
+//  * @param {getEventsCallback} callback The callback for the authorized client.
+//  */
+// function getNewToken(oAuth2Client, callback) {
+//   const authUrl = oAuth2Client.generateAuthUrl({
+//     access_type: 'offline',
+//     scope: SCOPES,
+//   });
+//   console.log('Authorize this app by visiting this url:', authUrl);
+//   const rl = readline.createInterface({
+//     input: process.stdin,
+//     output: process.stdout,
+//   });
+//   rl.question('Enter the code from that page here: ', (code) => {
+//     rl.close();
+//     oAuth2Client.getToken(code, (err, token) => {
+//       if (err) return console.error('Error while trying to retrieve access token', err);
+//       oAuth2Client.setCredentials(token);
+//       // Store the token to disk for later program executions
+//       fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+//         if (err) return console.error(err);
+//         console.log('Token stored to', TOKEN_PATH);
+//       });
+//       callback(oAuth2Client);
+//     });
+//   });
+// }
 
-//
-function createAndUpdateSheet(resArr, auth){
-    // console.log('auth: ', auth);
-    // console.log('resArr: ', resArr);
-    const sheets = google.sheets({version: 'v4', auth});
-    const resource = {
-        properties: {
-          title: "newGSheet"+new Date().getTime(),
-        },
-    };
-    let mygs = sheets.spreadsheets.create(
-        {
-            resource,
-        }, 
-        (err, spreadsheet) => {
-            let newGSID;
-            if (err) {
-                console.log(err);
-            } else {
-                newGSID = spreadsheet.data.spreadsheetId;
-                console.log('ID in createAndUpdateSheet1:', newGSID);
-                updateid(newGSID);
-                sheets.spreadsheets.values.update(
-                    {
-                        spreadsheetId: newGSID,
-                        range: 'Sheet1!A1',
-                        valueInputOption: "USER_ENTERED",
-                        resource: {
-                            // values: [
-                            //     ["URL", "Status", "ID"], 
-                            //     ["google.com", "200", "0"], 
-                            //     ["yahoo.com", "200", "1"],
-                            //     ["bing.com", "200", "2"]
-                            // ]
-                            values: convertNestArrResult(resArr)
-                        }
-                    }, 
-                    (err, res) => {
-                        if (err) return console.log('The API returned an error: ' + err);
-                        // console.log('res: ',res);
-                    }
-                );
-            }
-            // return newGSID;
-        }
-    );
-    // return newGSID;
-}
+// //
+// function createAndUpdateSheet(resArr, auth){
+//     // console.log('auth: ', auth);
+//     // console.log('resArr: ', resArr);
+//     const sheets = google.sheets({version: 'v4', auth});
+//     const resource = {
+//         properties: {
+//           title: "newGSheet"+new Date().getTime(),
+//         },
+//     };
+//     let mygs = sheets.spreadsheets.create(
+//         {
+//             resource,
+//         }, 
+//         (err, spreadsheet) => {
+//             let newGSID;
+//             if (err) {
+//                 console.log(err);
+//             } else {
+//                 newGSID = spreadsheet.data.spreadsheetId;
+//                 console.log('ID in createAndUpdateSheet1:', newGSID);
+//                 updateid(newGSID);
+//                 sheets.spreadsheets.values.update(
+//                     {
+//                         spreadsheetId: newGSID,
+//                         range: 'Sheet1!A1',
+//                         valueInputOption: "USER_ENTERED",
+//                         resource: {
+//                             // values: [
+//                             //     ["URL", "Status", "ID"], 
+//                             //     ["google.com", "200", "0"], 
+//                             //     ["yahoo.com", "200", "1"],
+//                             //     ["bing.com", "200", "2"]
+//                             // ]
+//                             values: convertNestArrResult(resArr)
+//                         }
+//                     }, 
+//                     (err, res) => {
+//                         if (err) return console.log('The API returned an error: ' + err);
+//                         // console.log('res: ',res);
+//                     }
+//                 );
+//             }
+//             // return newGSID;
+//         }
+//     );
+//     // return newGSID;
+// }
 ////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// above are for google sheet api /////////////////////////////
 ////////// since google upgrade api frequently, I keep it as a block of code ///////////
@@ -248,7 +248,8 @@ const urlLoop = async (urls) => {
 };
 
 let scrape = async (targetPage) => {
-    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false']});
+    // const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--blink-settings=imagesEnabled=false']});
+    const browser = await puppeteer.launch({headless: false, ignoreHTTPSErrors: true, slowMo: 100});
     const page = await browser.newPage();
     if(targetPage.startsWith('https://www.')){
         console.log('https://www.');
@@ -263,19 +264,33 @@ let scrape = async (targetPage) => {
     }
     // await page.goto(targetPage);
     await page.goto(targetPage, {
+    // var navigationPromise =  page.waitForNavigation();
+    // await page.goto("symphysismarketing.com/page-sitemap.xml", {
+    // await page.goto("https://www.google.com", {
         waitUntil: 'networkidle2',
         timeout: 30000
     });
-
+    // await navigationPromise;
     //either of these 3 ways return all links
-    const hrefs = await page.$$eval('a', as => as.map(a => a.href));
+    // const hrefs = await page.$$eval('a', as => as.map(a => a.href));
     // const hrefs = await page.evaluate(() => {
     //     return Array.from(document.getElementsByTagName('a'), a => a.href);
     // });
     // const hrefs = await Promise.all((await page.$$('a')).map(async a => {
     //     return await (await a.getProperty('href')).jsonValue();
     // }));
+
+    // await page.waitForTimeout(3000);
+    // await page.waitForSelector('a');
+    let hrefs = await page.evaluate((selector) => {
+        let els = Array.from(document.querySelectorAll(selector));
+        return els ? els.map(el => el.href) : "hrefs error";
+    }, 'a');
+
     console.log('hrefs: ',hrefs.length, hrefs);
+    await page.close();
+    await browser.close();
+    console.log("done scraping");
     return hrefs;
 };
 
@@ -300,28 +315,30 @@ app.post('/api', async function (req, res) {
             
             ///////////////////////////// below is GS api thing ////////////////////////////
             // check if google sheet api credentials ok, then create a sheet
-            fs.readFile('server/credentials.json', async (err, content) => {
-                if (err) return console.log('Error loading client secret file:', err);
-                // Authorize a client with credentials, then call the Google Sheets API.
-                await authorize(resultArray, JSON.parse(content), createAndUpdateSheet);
-                // console.log('content: ', JSON.parse(content));
+            // fs.readFile('server/credentials.json', async (err, content) => {
+            //     if (err) return console.log('Error loading client secret file:', err);
+            //     // Authorize a client with credentials, then call the Google Sheets API.
+            //     await authorize(resultArray, JSON.parse(content), createAndUpdateSheet);
+            //     // console.log('content: ', JSON.parse(content));
                 
                 
-            });
+            // });
             ///////////////////////////// above is GS api thing ////////////////////////////
 
             // DB
-            const scrapelink = new Scrapelink({
-                givenlink: targetPage,
-                resultlinks: resultArray
-            });
-            scrapelink.save()
-            .then(data => {
-                res.send(data.resultlinks);
-            })
-            .catch(err => {
-                res.send("DB ERROR: ", err);
-            });
+            // const scrapelink = new Scrapelink({
+            //     givenlink: targetPage,
+            //     resultlinks: resultArray
+            // });
+            // scrapelink.save()
+            // .then(data => {
+            //     res.send(data.resultlinks);
+            // })
+            // .catch(err => {
+            //     res.send("DB ERROR: ", err);
+            // });
+            // old, no GS no DB
+            res.send(resultArray);
         })
     }).catch(() => {});    
 });
@@ -329,11 +346,11 @@ app.post('/api', async function (req, res) {
 // GET route get all documents from Scrapelink collection,
 // use find() to get all,
 // response back JSON
-app.get('/api', async function (req, res) {
-    try {
-        const allSavedData = await Scrapelink.find();
-        res.send(allSavedData);
-    } catch (err) {
-        res.send("DB ERROR: ", err);
-    }
-});
+// app.get('/api', async function (req, res) {
+//     try {
+//         const allSavedData = await Scrapelink.find();
+//         res.send(allSavedData);
+//     } catch (err) {
+//         res.send("DB ERROR: ", err);
+//     }
+// });
